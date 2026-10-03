@@ -10,7 +10,8 @@ export function ownerFor(user,requested){
   return validId(requested||user.id);
 }
 export async function insertRecord(tx,user,body){
-  const ownerId=ownerFor(user,body.ownerId),data=normalizeRecord(body.kind,body.data);
+  ownerFor(user,body.ownerId);
+  const ownerId=user.id,data=normalizeRecord(body.kind,body.data);
   if(!(await tx.query('SELECT id FROM users WHERE id=$1 AND active=true',[ownerId])).rows.length)throw new AppError(400,'資料擁有者不存在或已停用');
   const {rows}=await tx.query('INSERT INTO records(id,owner_id,kind,designer,month,data) VALUES($1,$2,$3,$4,$5,$6) RETURNING *',[randomUUID(),ownerId,body.kind,data.designer||null,data.month||null,JSON.stringify(data)]);
   return record(rows[0]);

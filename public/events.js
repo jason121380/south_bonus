@@ -10,12 +10,12 @@ function showLogin(message=''){
   for(const form of ['subsidyForm','trafficSubsidyForm','userForm','userEditForm','passwordForm'])$('#'+form).reset();
   subsidyEditId=trafficEditId=null;subsidyOriginal=trafficOriginal=null;editCtx=null;
   for(const d of $$('dialog'))if(d.open)d.close();
-  $('#ownerFilter').innerHTML='';$$('.record-owner').forEach(s=>s.innerHTML='');render();$('#usersTable').innerHTML='';
+  $('#ownerFilter').innerHTML='';render();$('#usersTable').innerHTML='';
 }
 window.addEventListener('session-expired',()=>showLogin('登入已失效，請重新登入'));
 async function action(fn){
   if(busy){toast('正在處理，請稍候');return;}
-  busy=true;const buttons=$$('button[type=submit],.danger,#ownerFilter,#monthFilter,.record-owner');const prior=buttons.map(b=>b.disabled);buttons.forEach(b=>b.disabled=true);
+  busy=true;const buttons=$$('button[type=submit],.danger,#ownerFilter,#monthFilter');const prior=buttons.map(b=>b.disabled);buttons.forEach(b=>b.disabled=true);
   try{await fn();}catch(error){toast(error.message);if(error.status===409&&currentUser)try{await refresh();}catch{} }
   finally{busy=false;buttons.forEach((b,i)=>b.disabled=prior[i]);}
 }
@@ -23,7 +23,6 @@ function fillUsers(){
   const filter=$('#ownerFilter'),selected=filter.value||currentUser.id;
   filter.innerHTML='<option value="all">全部用戶</option>'+users.map(u=>`<option value="${u.id}">${escapeHtml(u.displayName)}${u.active?'':'（停用）'}</option>`).join('');
   filter.value=[...filter.options].some(o=>o.value===selected)?selected:currentUser.id;
-  $$('.record-owner').forEach(select=>{const selected=select.value||currentUser.id;select.innerHTML=users.filter(u=>u.active).map(u=>`<option value="${u.id}">${escapeHtml(u.displayName)}</option>`).join('');select.value=[...select.options].some(o=>o.value===selected)?selected:currentUser.id;});
   $('#usersTable').innerHTML=users.map(u=>`<tr><td>${escapeHtml(u.username)}</td><td>${escapeHtml(u.displayName)}</td><td>${u.role==='admin'?'管理員':'一般用戶'}</td><td>${u.active?'啟用':'停用'}</td><td><button type="button" class="edit-user-btn secondary" data-id="${u.id}">編輯／重設密碼</button></td></tr>`).join('');
 }
 async function reloadUsers(){if(currentUser.role==='admin'){users=await API.request('/users');fillUsers();}}
@@ -32,7 +31,6 @@ async function refresh(){
   const suffix=selected&&selected!=='all'?`?ownerId=${encodeURIComponent(selected)}`:'';
   const data=await API.request('/state'+suffix);
   Object.assign(state,data);fillDesignerSelect();render();
-  $$('.record-owner').forEach(select=>{if(selected!=='all'&&users.some(u=>u.id===selected&&u.active))select.value=selected;});
   // Include ownership in admin tables without exposing any extra data to normal users.
   if(currentUser.role==='admin'){
     for(const id of ['subsidyTable','trafficSubsidyTable','revenueTable','adTable']){
@@ -52,7 +50,7 @@ async function enter(user){
 async function persist(kind,data,original){
   const body={data};
   if(original){body.version=original.version;await API.request(`/records/${original.id}`,{method:'PUT',body});}
-  else{body.kind=kind;if(currentUser.role==='admin')body.ownerId=data.ownerId||currentUser.id;await API.request('/records',{method:'POST',body});}
+  else{body.kind=kind;await API.request('/records',{method:'POST',body});}
   await refresh();
 }
 $('#loginForm').addEventListener('submit',e=>{e.preventDefault();action(async()=>{
@@ -80,13 +78,13 @@ document.addEventListener('click',e=>{
   const subsidy=e.target.closest('.edit-subsidy-btn');
   if(subsidy){const r=state.subsidyReports.find(x=>x.id===subsidy.dataset.id);if(!r)return;resetSubsidyForm();subsidyEditId=r.id;subsidyOriginal={...r};switchView('subsidy');const f=$('#subsidyForm');
     for(const name of ['month','designer','monthlyAdFee','onlineRevenue','replyMinutes'])f.elements[name].value=r[name]??'';
-    f.elements.ownerId.value=r.ownerId;
+
     // Set every choice before recalculation to avoid using a previous record's ROAS.
     for(const name of ['adItem','socialPost','replyWithin','followSop','talentType']){f.elements[name].value=r[name]||'';f.querySelectorAll(`[data-choice="${name}"] .choice-btn`).forEach(b=>b.classList.toggle('selected',b.dataset.value===f.elements[name].value));}
     updateSubsidyCalc();updateReplyTimeDisplay();toast('已載入紀錄，修改後儲存');return;
   }
   const traffic=e.target.closest('.edit-traffic-btn');
-  if(traffic){const r=state.trafficSubsidyReports.find(x=>x.id===traffic.dataset.id);if(!r)return;trafficEditId=r.id;trafficOriginal={...r};switchView('traffic-subsidy');const f=$('#trafficSubsidyForm');for(const name of ['month','designer','monthlyAdFee','actualRevenue'])f.elements[name].value=r[name];f.elements.ownerId.value=r.ownerId;updateTrafficSubsidyCalc();return;}
+  if(traffic){const r=state.trafficSubsidyReports.find(x=>x.id===traffic.dataset.id);if(!r)return;trafficEditId=r.id;trafficOriginal={...r};switchView('traffic-subsidy');const f=$('#trafficSubsidyForm');for(const name of ['month','designer','monthlyAdFee','actualRevenue'])f.elements[name].value=r[name];updateTrafficSubsidyCalc();return;}
   const edit=e.target.closest('.edit-btn');if(edit){openEdit(edit.dataset.type,edit.dataset.id);return;}
   const del=e.target.closest('.delete-btn');
   if(del){const r=state[arrays[del.dataset.type]].find(x=>x.id===del.dataset.id);if(!r||!confirm('確定刪除這筆紀錄？'))return;action(async()=>{await API.request(`/records/${r.id}`,{method:'DELETE',body:{version:r.version}});await refresh();toast('紀錄已刪除');});return;}

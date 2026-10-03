@@ -48,7 +48,7 @@
       <section class="view active" id="subsidyView">
         <article class="panel form-panel wide-panel">
           <div class="panel-head"><h2>廣告補助回報</h2><span class="status-pill">每位設計師每月一筆</span></div>
-          <form id="subsidyForm" class="form-grid"><label class="span-2 admin-only" hidden>紀錄擁有者<select name="ownerId" class="record-owner"></select></label>
+          <form id="subsidyForm" class="form-grid">
             <label>月份<input type="month" name="month" required /></label>
             <label>設計師姓名<select name="designer" id="subsidyDesigner" required></select></label>
             <label class="span-2">廣告項目
@@ -150,7 +150,7 @@
       <section class="view" id="traffic-subsidyView">
         <article class="panel form-panel wide-panel">
           <div class="panel-head"><h2>流量型補助</h2><span class="status-pill">依實業績自動判斷補助</span></div>
-          <form id="trafficSubsidyForm" class="form-grid"><label class="span-2 admin-only" hidden>紀錄擁有者<select name="ownerId" class="record-owner"></select></label>
+          <form id="trafficSubsidyForm" class="form-grid">
             <label>月份<input type="month" name="month" required /></label>
             <label>設計師姓名<select name="designer" id="trafficSubsidyDesigner" required></select></label>
             <label>每月廣告費用<input type="number" name="monthlyAdFee" min="0" step="1" required placeholder="10000" /></label>
