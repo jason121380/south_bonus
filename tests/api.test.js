@@ -1,0 +1,74 @@
+import {test,before,after} from 'node:test';
+import assert from 'node:assert/strict';
+import request from 'supertest';
+import {createDatabase,migrate} from '../server/db.js';
+import {createApp} from '../server/app.js';
+import {bootstrapAdmin} from '../server/auth.js';
+let db,app,admin,user,other,first,second;
+const fixture={month:'2026-10',designer:'測試 A',monthlyAdFee:10000,onlineRevenue:36750,adItem:'染髮'};
+before(async()=>{
+ db=await createDatabase({embedded:true});await migrate(db);await migrate(db);
+ await bootstrapAdmin(db,{username:'admin',password:'test-admin-12345'});
+ app=createApp(db);admin=request.agent(app);user=request.agent(app);other=request.agent(app);
+ await admin.post('/api/login').send({username:'admin',password:'test-admin-12345'}).expect(200);
+ first=(await admin.post('/api/users').send({username:'first',displayName:'第一位',password:'test-user-12345',role:'user'}).expect(201)).body;
+ second=(await admin.post('/api/users').send({username:'second',displayName:'第二位',password:'test-user-12345',role:'user'}).expect(201)).body;
+ await user.post('/api/login').send({username:'first',password:'test-user-12345'}).expect(200);
+ await other.post('/api/login').send({username:'second',password:'test-user-12345'}).expect(200);
+});
+after(async()=>{await db.close()});
+test('health, login, unauthorized access, role protection and no cached API',async()=>{
+ const page=await request(app).get('/').expect(200);assert.match(page.text,/loginForm/);assert.match(page.text,/usersView/);assert.doesNotMatch(page.text,/cloudForm|Supabase|data-view="records"|data-view="reports"|id="revenueForm"|id="adForm"/);
+ await request(app).get('/health').expect(200);await request(app).get('/api/state').expect(401);
+ await request(app).post('/api/login').send({username:'admin',password:'wrong'}).expect(401);
+ await user.get('/api/users').expect(403);await user.post('/api/users').send({username:'evil',password:'test-user-12345',role:'admin'}).expect(403);
+ const r=await user.get('/api/me').expect(200);assert.equal(r.body.role,'user');assert.match(r.headers['cache-control'],/no-store/);assert.equal(r.body.password_hash,undefined);
+ await user.post('/api/records').set('Origin','https://evil.example').send({kind:'subsidy',data:fixture}).expect(403);
+ await user.post('/api/records').send([]).expect(400);
+});
+test('row ownership, server calculations, uniqueness, stale update/delete and admin owner control',async()=>{
+ await user.post('/api/records').send({kind:'subsidy',ownerId:second.id,data:fixture}).expect(403);
+ const r=(await user.post('/api/records').send({kind:'subsidy',data:{...fixture,departmentSubsidy:999999}}).expect(201)).body;
+ assert.equal(r.ownerId,first.id);assert.equal(r.departmentSubsidy,5250);
+ await other.put(`/api/records/${r.id}`).send({kind:'subsidy',version:r.version,data:fixture}).expect(404);
+ await other.delete(`/api/records/${r.id}`).send({version:r.version}).expect(404);
+ assert.equal((await other.get('/api/state')).body.subsidyReports.length,0);
+ await user.post('/api/records').send({kind:'subsidy',data:fixture}).expect(409);
+ const updated=(await user.put(`/api/records/${r.id}`).send({version:r.version,data:{...fixture,onlineRevenue:50000}}).expect(200)).body;
+ await user.put(`/api/records/${r.id}`).send({version:r.version,data:fixture}).expect(409);
+ await user.delete(`/api/records/${r.id}`).send({version:r.version}).expect(409);
+ const adminEdit=(await admin.put(`/api/records/${r.id}`).send({version:updated.version,data:fixture}).expect(200)).body;
+ await admin.delete(`/api/records/${r.id}`).send({version:adminEdit.version}).expect(204);
+ const assigned=(await admin.post('/api/records').send({kind:'traffic-subsidy',ownerId:second.id,data:{...fixture,designer:'測試 B',actualRevenue:300000}}).expect(201)).body;
+ assert.equal(assigned.ownerId,second.id);assert.equal((await other.get('/api/state')).body.trafficSubsidyReports.length,1);
+});
+test('import is atomic, preserves old records, validates/recalculates, and rejects duplicate import',async()=>{
+ const invalid={subsidyReports:[{...fixture,designer:'匯入 A'}],trafficSubsidyReports:[{...fixture,actualRevenue:-1}]};
+ await user.post('/api/import').send(invalid).expect(400);assert.equal((await user.get('/api/state')).body.subsidyReports.length,0);
+ const payload={subsidyReports:[{...fixture,designer:'匯入 A',id:'old-id',subsidyPercent:100}],trafficSubsidyReports:[]};
+ await user.post('/api/import').send(payload).expect(200);await user.post('/api/import').send(payload).expect(409);
+ const rows=(await user.get('/api/state')).body.subsidyReports;assert.equal(rows.length,1);assert.equal(rows[0].subsidyPercent,50);
+ await other.post('/api/import').send({ownerId:first.id,...payload}).expect(403);
+ await user.post('/api/import').send({ads:{bad:true}}).expect(400);
+});
+test('per-user settings, concurrent versions and clear scoped to requester',async()=>{
+ const old=(await user.get('/api/state')).body.settings;
+ assert.equal(old.ownerId,first.id);
+ await user.put('/api/settings').send({...old,margin:60}).expect(200);
+ await user.put('/api/settings').send({...old,margin:20}).expect(409);
+ assert.equal((await other.get('/api/state')).body.settings.margin,50);
+ await user.delete('/api/records').send({confirmation:'CLEAR_MY_RECORDS'}).expect(200);
+ assert.equal((await user.get('/api/state')).body.subsidyReports.length,0);assert.equal((await other.get('/api/state')).body.trafficSubsidyReports.length,1);
+});
+test('last admin protection, sessions revoked on reset/disable, password change and logout',async()=>{
+ const me=(await admin.get('/api/me')).body;
+ await admin.patch(`/api/users/${me.id}`).send({active:false}).expect(409);
+ await admin.patch(`/api/users/${me.id}`).send({role:'user'}).expect(409);
+ await admin.patch(`/api/users/${first.id}`).send({password:'reset-user-12345'}).expect(200);await user.get('/api/me').expect(401);
+ await user.post('/api/login').send({username:'first',password:'reset-user-12345'}).expect(200);
+ await user.post('/api/password').send({currentPassword:'reset-user-12345',password:'changed-user-12345'}).expect(200);await user.get('/api/me').expect(401);
+ await user.post('/api/login').send({username:'first',password:'changed-user-12345'}).expect(200);
+ await admin.patch(`/api/users/${second.id}`).send({active:false}).expect(200);await other.get('/api/me').expect(401);
+ await other.post('/api/login').send({username:'second',password:'test-user-12345'}).expect(401);
+ await user.post('/api/logout').send({}).expect(200);await user.get('/api/me').expect(401);
+});

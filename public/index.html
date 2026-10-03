@@ -9,16 +9,28 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app-shell">
+  <section id="loginScreen" class="login-screen">
+    <form id="loginForm" class="login-card">
+      <p class="eyebrow">SOUTH BONUS</p><h1>業績・補助管理</h1>
+      <p class="login-copy">登入帳號，管理你的每月補助紀錄。</p>
+      <label>帳號<input name="username" autocomplete="username" required /></label>
+      <label>密碼<input name="password" type="password" autocomplete="current-password" required /></label>
+      <p id="loginError" class="error-text" role="alert"></p>
+      <button class="primary" type="submit">登入</button>
+      <p class="help">需要帳號或重設密碼，請聯絡管理員。</p>
+    </form>
+  </section>
+  <div class="app-shell" id="appShell" hidden>
     <aside class="sidebar">
-      <div class="brand">業績<span>+</span><small>v7.3</small></div>
+      <div class="brand">業績<span>+</span><small>v8.0</small></div>
       <nav>
         <button class="nav-btn active" data-view="subsidy">補助回報</button>
         <button class="nav-btn" data-view="traffic-subsidy">流量型補助</button>
         <button class="nav-btn" data-view="subsidy-records">補助紀錄</button>
-        <button class="nav-btn" data-view="cloud">雲端</button>
+        <button class="nav-btn admin-only" data-view="users" hidden>用戶管理</button>
         <button class="nav-btn" data-view="settings">設定</button>
       </nav>
+      <div class="account-block"><span id="accountName"></span><small id="accountRole"></small><button id="logoutButton" type="button" class="secondary">登出</button></div>
     </aside>
 
     <main class="main">
@@ -27,15 +39,16 @@
           <p class="eyebrow">SALON PERFORMANCE</p>
           <h1 id="pageTitle">廣告補助回報</h1>
         </div>
+        <div class="topbar-tools"><label class="month-picker admin-only" hidden>資料擁有者<select id="ownerFilter"></select></label>
         <label class="month-picker">月份
           <input type="month" id="monthFilter" />
-        </label>
+        </label></div>
       </header>
 
       <section class="view active" id="subsidyView">
         <article class="panel form-panel wide-panel">
           <div class="panel-head"><h2>廣告補助回報</h2><span class="status-pill">每位設計師每月一筆</span></div>
-          <form id="subsidyForm" class="form-grid">
+          <form id="subsidyForm" class="form-grid"><label class="span-2 admin-only" hidden>紀錄擁有者<select name="ownerId" class="record-owner"></select></label>
             <label>月份<input type="month" name="month" required /></label>
             <label>設計師姓名<select name="designer" id="subsidyDesigner" required></select></label>
             <label class="span-2">廣告項目
@@ -137,7 +150,7 @@
       <section class="view" id="traffic-subsidyView">
         <article class="panel form-panel wide-panel">
           <div class="panel-head"><h2>流量型補助</h2><span class="status-pill">依實業績自動判斷補助</span></div>
-          <form id="trafficSubsidyForm" class="form-grid">
+          <form id="trafficSubsidyForm" class="form-grid"><label class="span-2 admin-only" hidden>紀錄擁有者<select name="ownerId" class="record-owner"></select></label>
             <label>月份<input type="month" name="month" required /></label>
             <label>設計師姓名<select name="designer" id="trafficSubsidyDesigner" required></select></label>
             <label>每月廣告費用<input type="number" name="monthlyAdFee" min="0" step="1" required placeholder="10000" /></label>
@@ -196,18 +209,19 @@
         </article>
       </section>
 
-      <section class="view" id="cloudView">
+      <section class="view" id="usersView">
         <article class="panel form-panel">
-          <div class="panel-head"><h2>Supabase 雲端同步</h2><span id="cloudStatus" class="status-pill">尚未設定</span></div>
-          <p class="help">未設定雲端時，資料仍會安全保存在這台裝置的瀏覽器。設定 Supabase 後，可把整份 App 資料上傳／下載，方便跨裝置使用。</p>
-          <form id="cloudForm" class="form-grid">
-            <label class="span-2">Supabase Project URL<input type="url" name="url" placeholder="https://xxxxx.supabase.co" /></label>
-            <label class="span-2">Anon Key<input type="password" name="anonKey" placeholder="eyJ..." autocomplete="off" /></label>
-            <label class="span-2">Workspace Key<input type="text" name="workspaceKey" placeholder="第一次可按下方產生" /></label>
-            <label class="check-row span-2"><input type="checkbox" name="autoSync" /> 每次新增／編輯／刪除後自動上傳</label>
-            <div class="span-2 form-actions wrap"><button class="primary" type="submit">儲存雲端設定</button><button class="secondary" type="button" id="generateWorkspace">產生 Workspace Key</button><button class="secondary" type="button" id="cloudUpload">上傳到雲端</button><button class="secondary" type="button" id="cloudDownload">從雲端下載</button></div>
+          <h2>新增用戶</h2>
+          <form id="userForm" class="form-grid">
+            <label>帳號<input name="username" required minlength="3" maxlength="64" autocomplete="off" placeholder="英文或數字" /></label>
+            <label>顯示名稱<input name="displayName" required maxlength="100" /></label>
+            <label>初始密碼<input name="password" type="password" required minlength="10" maxlength="128" autocomplete="new-password" /></label>
+            <label>角色<select name="role"><option value="user">一般用戶</option><option value="admin">管理員</option></select></label>
+            <div class="span-2"><button class="primary" type="submit">建立用戶</button></div>
           </form>
-          <div class="cloud-note">第一次使用需要先在 Supabase 執行附件中的 <strong>supabase-setup.sql</strong>。Workspace Key 等同這份資料的同步密碼，請不要公開。</div>
+        </article>
+        <article class="panel"><div class="panel-head"><h2>用戶列表</h2><span>一般用戶只可操作自己的紀錄</span></div>
+          <div class="table-wrap"><table><thead><tr><th>帳號</th><th>名稱</th><th>角色</th><th>狀態</th><th>操作</th></tr></thead><tbody id="usersTable"></tbody></table></div>
         </article>
       </section>
 
@@ -218,9 +232,14 @@
             <label>毛利率 (%)<input type="number" name="margin" min="0" max="100" step="1" /></label>
             <label>目前選擇月份業績目標<input type="number" name="goal" min="0" step="1000" placeholder="100000" /></label>
             <div class="help span-2">ROI：〔廣告帶來業績 × 毛利率 − 廣告費〕÷ 廣告費 × 100%。ROAS：廣告帶來業績 ÷ 廣告費。業績目標會依月份個別保存。</div>
-            <div class="span-2 form-actions"><button class="primary" type="submit">儲存設定</button><button class="danger" type="button" id="clearData">清除全部資料</button></div>
+            <div class="span-2 form-actions"><button class="primary" type="submit">儲存設定</button><button class="danger" type="button" id="clearData">清除我的紀錄</button></div>
           </form>
         </article>
+        <article class="panel form-panel">
+          <h2>資料備份與匯入</h2><p class="help">匯入紀錄歸目前登入帳號所有，遇到重複資料會取消整次匯入，保留原有紀錄。舊版資料可在原本網址開啟 legacy-export.html 匯出。</p>
+          <div class="form-actions wrap"><button id="exportBackup" class="secondary" type="button">匯出可見資料 JSON</button><label class="file-label">匯入 JSON<input type="file" id="importBackup" accept=".json,application/json" /></label></div>
+        </article>
+        <article class="panel form-panel"><h2>修改我的密碼</h2><form id="passwordForm" class="form-grid"><label>目前密碼<input name="currentPassword" type="password" required autocomplete="current-password" /></label><label>新密碼<input name="password" type="password" required minlength="10" maxlength="128" autocomplete="new-password" /></label><div class="span-2"><button class="primary" type="submit">修改密碼並重新登入</button></div></form></article>
       </section>
     </main>
   </div>
@@ -234,6 +253,7 @@
   </dialog>
 
   <div id="toast" class="toast"></div>
-  <script src="app.js"></script>
+  <dialog id="userDialog"><form id="userEditForm" class="dialog-card"><div class="panel-head"><h2>編輯用戶</h2><button class="icon-btn" id="closeUserEdit" type="button">×</button></div><div class="form-grid"><label>顯示名稱<input name="displayName" required maxlength="100" /></label><label>角色<select name="role"><option value="user">一般用戶</option><option value="admin">管理員</option></select></label><label class="check-row"><input name="active" type="checkbox" />啟用帳號</label><label>重設密碼（留白保留）<input name="password" type="password" minlength="10" maxlength="128" autocomplete="new-password" /></label></div><p class="help">停用、變更角色或重設密碼會讓這位用戶重新登入。</p><div class="dialog-actions"><button class="primary" type="submit">儲存用戶</button></div></form></dialog>
+  <script src="api.js"></script><script src="app.js"></script><script src="events.js"></script>
 </body>
 </html>
