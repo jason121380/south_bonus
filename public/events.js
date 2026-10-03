@@ -68,7 +68,7 @@ $('#resetSubsidyForm').addEventListener('click',()=>{resetSubsidyForm();subsidyO
 for(const name of ['monthlyAdFee','actualRevenue'])$('#trafficSubsidyForm [name='+name+']').addEventListener('input',updateTrafficSubsidyCalc);
 $('#trafficSubsidyForm').addEventListener('submit',e=>{e.preventDefault();const data=fields(e.currentTarget);action(async()=>{const wasEdit=!!trafficEditId;await persist('traffic-subsidy',data,trafficOriginal);resetTrafficSubsidyForm();trafficOriginal=null;toast(wasEdit?'流量型補助已更新':'流量型補助已儲存');});});
 $('#resetTrafficSubsidyForm').addEventListener('click',()=>{resetTrafficSubsidyForm();trafficOriginal=null;});
-document.addEventListener('click',e=>{
+document.addEventListener('click',async e=>{
   const subsidy=e.target.closest('.edit-subsidy-btn');
   if(subsidy){const r=state.subsidyReports.find(x=>x.id===subsidy.dataset.id);if(!r)return;resetSubsidyForm();subsidyEditId=r.id;subsidyOriginal={...r};switchView('subsidy');const f=$('#subsidyForm');
     for(const name of ['month','designer','monthlyAdFee','onlineRevenue','replyMinutes'])f.elements[name].value=r[name]??'';
@@ -81,7 +81,7 @@ document.addEventListener('click',e=>{
   if(traffic){const r=state.trafficSubsidyReports.find(x=>x.id===traffic.dataset.id);if(!r)return;trafficEditId=r.id;trafficOriginal={...r};switchView('traffic-subsidy');const f=$('#trafficSubsidyForm');for(const name of ['month','designer','monthlyAdFee','actualRevenue'])f.elements[name].value=r[name];updateTrafficSubsidyCalc();return;}
   const edit=e.target.closest('.edit-btn');if(edit){openEdit(edit.dataset.type,edit.dataset.id);return;}
   const del=e.target.closest('.delete-btn');
-  if(del){const r=state[arrays[del.dataset.type]].find(x=>x.id===del.dataset.id);if(!r||!confirm('確定刪除這筆紀錄？'))return;action(async()=>{await API.request(`/records/${r.id}`,{method:'DELETE',body:{version:r.version}});await refresh();toast('紀錄已刪除');});return;}
+  if(del){const r=state[arrays[del.dataset.type]].find(x=>x.id===del.dataset.id);if(!r||!await UI.confirm('確定刪除這筆紀錄？'))return;action(async()=>{await API.request(`/records/${r.id}`,{method:'DELETE',body:{version:r.version}});await refresh();toast('紀錄已刪除');});return;}
   const editUser=e.target.closest('.edit-user-btn');if(editUser){const user=users.find(u=>u.id===editUser.dataset.id);editingUserId=user.id;const f=$('#userEditForm');f.elements.displayName.value=user.displayName;f.elements.role.value=user.role;f.elements.active.checked=user.active;f.elements.password.value='';$('#userDialog').showModal();}
 });
 $('#editForm').addEventListener('submit',e=>{e.preventDefault();if(!editCtx)return;const data=fields(e.currentTarget),original={...editCtx};action(async()=>{await persist(original.type,data,original);$('#editDialog').close();editCtx=null;toast('紀錄已更新');});});
@@ -90,7 +90,7 @@ $('#settingsForm').addEventListener('submit',e=>{e.preventDefault();const data=f
   const settings=API.settingsPayload(data,state.settings,selectedMonth());
   await API.request('/settings',{method:'PUT',body:settings});await refresh();toast('設定已儲存');
 });});
-$('#clearData').addEventListener('click',()=>{if(confirm('確定清除你自己全部的業績、廣告費及兩種補助紀錄？設定會保留，其他用戶資料不受影響。'))action(async()=>{await API.request('/records',{method:'DELETE',body:{confirmation:'CLEAR_MY_RECORDS'}});await refresh();toast('你的紀錄已清除');});});
+$('#clearData').addEventListener('click',async()=>{if(await UI.confirm('確定清除你自己全部的業績、廣告費及兩種補助紀錄？設定會保留，其他用戶資料不受影響。'))action(async()=>{await API.request('/records',{method:'DELETE',body:{confirmation:'CLEAR_MY_RECORDS'}});await refresh();toast('你的紀錄已清除');});});
 $('#userForm').addEventListener('submit',e=>{e.preventDefault();const form=e.currentTarget,data=fields(form);action(async()=>{await API.request('/users',{method:'POST',body:data});form.reset();await reloadUsers();toast('用戶已建立');});});
 $('#closeUserEdit').addEventListener('click',()=>$('#userDialog').close());
 $('#userEditForm').addEventListener('submit',e=>{e.preventDefault();const form=e.currentTarget,data=fields(form);data.active=form.elements.active.checked;if(!data.password)delete data.password;action(async()=>{await API.request(`/users/${editingUserId}`,{method:'PATCH',body:data});$('#userDialog').close();await reloadUsers();toast('用戶已更新');});});
@@ -99,7 +99,7 @@ function jsonDownload(filename,value){const url=URL.createObjectURL(new Blob([JS
 $('#exportBackup').addEventListener('click',()=>jsonDownload(`south-bonus-${today}.json`,state));
 $('#importBackup').addEventListener('change',e=>{const file=e.target.files[0];e.target.value='';if(!file)return;if(file.size>5*1024*1024){toast('檔案超過 5 MB');return;}action(async()=>{
   let payload;try{payload=JSON.parse(await file.text());}catch{throw new Error('檔案不是有效 JSON');}
-  if(!confirm('匯入紀錄會歸目前登入帳號所有。遇到重複紀錄會取消整次匯入，確定繼續？'))return;
+  if(!await UI.confirm('匯入紀錄會歸目前登入帳號所有。遇到重複紀錄會取消整次匯入，確定繼續？'))return;
   const result=await API.request('/import',{method:'POST',body:payload});await refresh();toast(`已匯入 ${result.count} 筆紀錄`);
 });});
 $$('.report-tab').forEach(b=>b.addEventListener('click',()=>{$$('.report-tab').forEach(x=>x.classList.toggle('active',x===b));$$('.report-panel').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.report+'ReportPanel').classList.add('active');}));
