@@ -75,6 +75,7 @@
     });
   }
   function sync(){
+    document.querySelectorAll('input[type=file]').forEach(input=>{const name=input.closest('label')?.querySelector('[data-file-name]');const text=input.files[0]?.name||'尚未選擇檔案';if(name&&name.textContent!==text)name.textContent=text;});
     for(const [input,c] of controls){
       if(!input.isConnected){controls.delete(input);continue}
       const text=c.kind==='select'?input.selectedOptions[0]?.textContent||'請選擇':input.value?input.value.replaceAll('-',' / '):c.kind==='month'?'選擇月份':'選擇日期';
@@ -87,6 +88,7 @@
     document.querySelectorAll('form').forEach(form=>form.noValidate=true);sync();
   }
   document.addEventListener('click',event=>{if(active&&!active.panel.parentElement.contains(event.target))close();queueMicrotask(sync)});
+  document.addEventListener('keydown',event=>{if(event.target.matches('[data-file-trigger]')&&['Enter',' '].includes(event.key)){event.preventDefault();event.target.closest('label').querySelector('input[type=file]').click();}});
   document.addEventListener('change',sync);document.addEventListener('reset',event=>{event.target.querySelectorAll('.ui-field-error').forEach(node=>node.remove());event.target.querySelectorAll('[aria-invalid]').forEach(node=>node.removeAttribute('aria-invalid'));setTimeout(sync)});
   document.addEventListener('submit',event=>{
     const form=event.target;

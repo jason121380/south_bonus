@@ -237,7 +237,7 @@
         </article>
         <article class="panel form-panel">
           <h2>資料備份與匯入</h2><p class="help">匯入紀錄歸目前登入帳號所有，遇到重複資料會取消整次匯入，保留原有紀錄。舊版資料可在原本網址開啟 legacy-export.html 匯出。</p>
-          <div class="form-actions wrap"><button id="exportBackup" class="secondary" type="button">匯出可見資料 JSON</button><label class="file-label">匯入 JSON<input type="file" id="importBackup" accept=".json,application/json" /></label></div>
+          <div class="form-actions wrap"><button id="exportBackup" class="secondary" type="button">匯出可見資料 JSON</button><label class="file-label">匯入 JSON<span class="file-picker"><span class="secondary" data-file-trigger role="button" tabindex="0">選擇 JSON 檔案</span><span data-file-name>尚未選擇檔案</span></span><input type="file" id="importBackup" accept=".json,application/json" hidden /></label></div>
         </article>
         <article class="panel form-panel"><h2>修改我的密碼</h2><form id="passwordForm" class="form-grid"><label>目前密碼<input name="currentPassword" type="password" required autocomplete="current-password" /></label><label>新密碼<input name="password" type="password" required minlength="6" maxlength="128" autocomplete="new-password" /></label><div class="span-2"><button class="primary" type="submit">修改密碼並重新登入</button></div></form></article>
       </section>

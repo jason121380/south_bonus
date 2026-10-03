@@ -80,3 +80,7 @@ server/migrations/ SQL migrations
 server/app.js    HTTP API 與靜態資源
 tests/           計算、API 與前端錯誤處理測試
 ```
+
+## 樣式規範
+
+全站字級、間距、元件尺寸、響應式比例與維護方式請參考 [style.md](style.md)。共用樣式集中在 `public/styles.css`，自訂元件集中在 `public/ui.js`。
