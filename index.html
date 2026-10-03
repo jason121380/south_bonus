@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#161616" />
+  <title>業績・投報率管理</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">業績<span>+</span><small>v7.3</small></div>
+      <nav>
+        <button class="nav-btn active" data-view="subsidy">補助回報</button>
+        <button class="nav-btn" data-view="traffic-subsidy">流量型補助</button>
+        <button class="nav-btn" data-view="subsidy-records">補助紀錄</button>
+        <button class="nav-btn" data-view="cloud">雲端</button>
+        <button class="nav-btn" data-view="settings">設定</button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">SALON PERFORMANCE</p>
+          <h1 id="pageTitle">廣告補助回報</h1>
+        </div>
+        <label class="month-picker">月份
+          <input type="month" id="monthFilter" />
+        </label>
+      </header>
+
+      <section class="view active" id="subsidyView">
+        <article class="panel form-panel wide-panel">
+          <div class="panel-head"><h2>廣告補助回報</h2><span class="status-pill">每位設計師每月一筆</span></div>
+          <form id="subsidyForm" class="form-grid">
+            <label>月份<input type="month" name="month" required /></label>
+            <label>設計師姓名<select name="designer" id="subsidyDesigner" required></select></label>
+            <label class="span-2">廣告項目
+              <div class="choice-group" data-choice="adItem">
+                <button type="button" class="choice-btn" data-value="染髮">染髮</button>
+                <button type="button" class="choice-btn" data-value="縮毛矯正">縮毛矯正</button>
+                <button type="button" class="choice-btn" data-value="燙髮">燙髮</button>
+                <button type="button" class="choice-btn" data-value="護髮">護髮</button>
+                <button type="button" class="choice-btn" data-value="接髮">接髮</button>
+                <button type="button" class="choice-btn" data-value="其他">其他</button>
+              </div>
+              <input type="hidden" name="adItem" />
+            </label>
+            <label>每月廣告費用<input type="number" name="monthlyAdFee" min="0" step="1" required placeholder="10000" /></label>
+            <label>實際廣告費用＋5%<input type="text" name="actualAdFee" readonly /></label>
+            <label>網路業績<input type="number" name="onlineRevenue" min="0" step="1" required placeholder="35000" /></label>
+            <label>投報率<input type="text" name="reportRoas" readonly /></label>
+
+            <div class="span-2 metric-block">
+              <span class="metric-label">3.5 倍達標｜達標即補助 50%</span>
+              <div id="roasTargetBadge" class="auto-badge neutral">輸入廣告費與網路業績後自動判斷</div>
+            </div>
+
+            <div class="span-2 criteria-grid">
+              <div class="criteria-card">
+                <span>貼文及限時動態（10%）</span>
+                <div class="choice-group binary" data-choice="socialPost">
+                  <button type="button" class="choice-btn yes" data-value="yes">✓ 達標</button>
+                  <button type="button" class="choice-btn no" data-value="no">✕ 未達標</button>
+                </div><input type="hidden" name="socialPost" />
+              </div>
+              <div class="criteria-card">
+                <span>1.5 小時內回覆（10%）</span>
+                <div class="choice-group binary" data-choice="replyWithin">
+                  <button type="button" class="choice-btn yes" data-value="yes">✓ 達標</button>
+                  <button type="button" class="choice-btn no" data-value="no">✕ 未達標</button>
+                </div><input type="hidden" name="replyWithin" />
+              </div>
+              <div class="criteria-card">
+                <span>遵循 SOP 回覆（10%）</span>
+                <div class="choice-group binary" data-choice="followSop">
+                  <button type="button" class="choice-btn yes" data-value="yes">✓ 達標</button>
+                  <button type="button" class="choice-btn no" data-value="no">✕ 未達標</button>
+                </div><input type="hidden" name="followSop" />
+              </div>
+            </div>
+
+            <label>實際平均回覆時間
+              <div class="reply-time-box">
+                <div class="reply-time-quick" id="replyTimeQuick">
+                  <button type="button" class="time-quick-btn" data-minutes="30">30 分鐘</button>
+                  <button type="button" class="time-quick-btn" data-minutes="60">1 小時</button>
+                  <button type="button" class="time-quick-btn" data-minutes="90">1 小時 30 分</button>
+                  <button type="button" class="time-quick-btn" data-minutes="120">2 小時</button>
+                </div>
+                <div class="reply-time-tail-wrap">
+                  <span class="reply-time-tail-label">分鐘尾數</span>
+                  <div class="reply-time-tail" id="replyMinuteTail" aria-label="分鐘尾數快捷按鈕">
+                    <button type="button" class="minute-tail-btn" data-digit="0">0</button>
+                    <button type="button" class="minute-tail-btn" data-digit="1">1</button>
+                    <button type="button" class="minute-tail-btn" data-digit="2">2</button>
+                    <button type="button" class="minute-tail-btn" data-digit="3">3</button>
+                    <button type="button" class="minute-tail-btn" data-digit="4">4</button>
+                    <button type="button" class="minute-tail-btn" data-digit="5">5</button>
+                    <button type="button" class="minute-tail-btn" data-digit="6">6</button>
+                    <button type="button" class="minute-tail-btn" data-digit="7">7</button>
+                    <button type="button" class="minute-tail-btn" data-digit="8">8</button>
+                    <button type="button" class="minute-tail-btn" data-digit="9">9</button>
+                  </div>
+                </div>
+                <div class="reply-time-input-row">
+                  <input type="number" name="replyMinutes" min="0" step="1" inputmode="numeric" placeholder="直接輸入總分鐘，例如 87" />
+                  <span>分鐘</span>
+                </div>
+                <div class="reply-time-result" id="replyTimeFormatted">尚未輸入時間</div>
+                <input type="hidden" name="replyTime" />
+              </div>
+            </label>
+            <label>新秀／首次投放
+              <div class="choice-group" data-choice="talentType">
+                <button type="button" class="choice-btn" data-value="一般">一般</button>
+                <button type="button" class="choice-btn" data-value="新秀">新秀</button>
+                <button type="button" class="choice-btn" data-value="首次投放">首次投放</button>
+              </div><input type="hidden" name="talentType" value="一般" />
+            </label>
+
+            <div class="span-2 subsidy-summary">
+              <div><span>三項皆達標加碼</span><strong id="allThreeBonus">0%</strong></div>
+              <div><span>本次補助％數</span><strong id="subsidyPercent">0%</strong></div>
+              <div><span>事業部補助費用</span><strong id="departmentSubsidy">$0</strong></div>
+              <div><span>設計師負擔金額</span><strong id="designerBurden">$0</strong></div>
+            </div>
+            <div class="help span-2">目前補助計算規則：投報率達 3.5 倍時固定補助 50%，不再疊加其他配合度補助；未達 3.5 倍時，貼文／限動達標 +10%、1.5 小時內回覆 +10%、遵循 SOP +10%，三項全部達標再 +10%，最高 40%。</div>
+            <div class="span-2 form-actions"><button class="primary" type="submit">儲存補助回報</button><button class="secondary" type="button" id="resetSubsidyForm">清除表單</button></div>
+          </form>
+        </article>
+      </section>
+
+      <section class="view" id="traffic-subsidyView">
+        <article class="panel form-panel wide-panel">
+          <div class="panel-head"><h2>流量型補助</h2><span class="status-pill">依實業績自動判斷補助</span></div>
+          <form id="trafficSubsidyForm" class="form-grid">
+            <label>月份<input type="month" name="month" required /></label>
+            <label>設計師姓名<select name="designer" id="trafficSubsidyDesigner" required></select></label>
+            <label>每月廣告費用<input type="number" name="monthlyAdFee" min="0" step="1" required placeholder="10000" /></label>
+            <label>實際廣告費用＋5%<input type="text" name="actualAdFee" readonly /></label>
+            <label class="span-2">實業績<input type="number" name="actualRevenue" min="0" step="1" required placeholder="150000" /></label>
+
+            <div class="span-2 metric-block">
+              <span class="metric-label">流量型補助條件</span>
+              <div id="trafficTierBadge" class="auto-badge neutral">輸入實業績後自動判斷</div>
+            </div>
+
+            <div class="span-2 subsidy-summary">
+              <div><span>本次補助％數</span><strong id="trafficSubsidyPercent">0%</strong></div>
+              <div><span>事業部補助費用</span><strong id="trafficDepartmentSubsidy">$0</strong></div>
+              <div><span>設計師負擔金額</span><strong id="trafficDesignerBurden">$0</strong></div>
+            </div>
+
+            <div class="help span-2">補助規則：實業績 15 萬以上補助 20%、20 萬以上補助 30%、25 萬以上補助 40%、30 萬以上補助 50%。低於 15 萬不補助。</div>
+            <div class="span-2 form-actions"><button class="primary" type="submit">儲存流量型補助</button><button class="secondary" type="button" id="resetTrafficSubsidyForm">清除表單</button></div>
+          </form>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head"><h2>本月流量型補助紀錄</h2><span id="trafficSubsidyRecordCount"></span></div>
+          <div class="table-wrap"><table><thead><tr><th>月份</th><th>姓名</th><th>每月廣告費</th><th>實際＋5%</th><th>實業績</th><th>補助%</th><th>事業部補助</th><th>設計師負擔</th><th>操作</th></tr></thead><tbody id="trafficSubsidyTable"></tbody></table></div>
+        </article>
+      </section>
+
+      <section class="view" id="subsidy-recordsView">
+        <article class="panel">
+          <div class="panel-head"><h2>廣告補助回報紀錄</h2><div class="form-actions"><span id="subsidyRecordCount"></span><button class="secondary" id="exportSubsidy" type="button">匯出 CSV</button></div></div>
+          <div class="table-wrap"><table class="wide-table"><thead><tr><th>月份</th><th>姓名</th><th>廣告項目</th><th>每月廣告費</th><th>實際＋5%</th><th>網路業績</th><th>ROAS</th><th>3.5倍</th><th>貼文／限動</th><th>1.5h回覆</th><th>回覆時間</th><th>SOP</th><th>三項加碼</th><th>補助%</th><th>事業部補助</th><th>設計師負擔</th><th>身分類別</th><th>操作</th></tr></thead><tbody id="subsidyTable"></tbody></table></div>
+        </article>
+      </section>
+
+      <section class="view" id="recordsView">
+        <article class="panel">
+          <div class="panel-head"><h2>業績紀錄</h2><span id="recordCount"></span></div>
+          <div class="table-wrap"><table><thead><tr><th>日期</th><th>金額</th><th>服務</th><th>客人</th><th>客源</th><th>廣告</th><th>設計師</th><th>操作</th></tr></thead><tbody id="revenueTable"></tbody></table></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><h2>廣告費紀錄</h2><span id="adRecordCount"></span></div>
+          <div class="table-wrap"><table><thead><tr><th>日期</th><th>平台</th><th>金額</th><th>活動</th><th>操作</th></tr></thead><tbody id="adTable"></tbody></table></div>
+        </article>
+      </section>
+
+      <section class="view" id="reportsView">
+        <div class="report-tabs"><button class="report-tab active" data-report="daily">每日報表</button><button class="report-tab" data-report="monthly">每月報表</button></div>
+        <article class="panel report-panel active" id="dailyReportPanel">
+          <div class="panel-head"><h2>每日報表</h2><button class="secondary" id="exportDaily">匯出 CSV</button></div>
+          <div class="table-wrap"><table><thead><tr><th>日期</th><th>業績</th><th>人數</th><th>平均客單</th><th>廣告客業績</th><th>新客</th><th>回客／其他</th></tr></thead><tbody id="dailyReportTable"></tbody></table></div>
+        </article>
+        <article class="panel report-panel" id="monthlyReportPanel">
+          <div class="panel-head"><h2>每月報表</h2><button class="secondary" id="exportMonthly">匯出 CSV</button></div>
+          <div class="table-wrap"><table><thead><tr><th>月份</th><th>總業績</th><th>人數</th><th>平均客單</th><th>廣告費</th><th>廣告業績</th><th>ROAS</th><th>目標達成率</th></tr></thead><tbody id="monthlyReportTable"></tbody></table></div>
+        </article>
+      </section>
+
+      <section class="view" id="cloudView">
+        <article class="panel form-panel">
+          <div class="panel-head"><h2>Supabase 雲端同步</h2><span id="cloudStatus" class="status-pill">尚未設定</span></div>
+          <p class="help">未設定雲端時，資料仍會安全保存在這台裝置的瀏覽器。設定 Supabase 後，可把整份 App 資料上傳／下載，方便跨裝置使用。</p>
+          <form id="cloudForm" class="form-grid">
+            <label class="span-2">Supabase Project URL<input type="url" name="url" placeholder="https://xxxxx.supabase.co" /></label>
+            <label class="span-2">Anon Key<input type="password" name="anonKey" placeholder="eyJ..." autocomplete="off" /></label>
+            <label class="span-2">Workspace Key<input type="text" name="workspaceKey" placeholder="第一次可按下方產生" /></label>
+            <label class="check-row span-2"><input type="checkbox" name="autoSync" /> 每次新增／編輯／刪除後自動上傳</label>
+            <div class="span-2 form-actions wrap"><button class="primary" type="submit">儲存雲端設定</button><button class="secondary" type="button" id="generateWorkspace">產生 Workspace Key</button><button class="secondary" type="button" id="cloudUpload">上傳到雲端</button><button class="secondary" type="button" id="cloudDownload">從雲端下載</button></div>
+          </form>
+          <div class="cloud-note">第一次使用需要先在 Supabase 執行附件中的 <strong>supabase-setup.sql</strong>。Workspace Key 等同這份資料的同步密碼，請不要公開。</div>
+        </article>
+      </section>
+
+      <section class="view" id="settingsView">
+        <article class="panel form-panel">
+          <h2>計算與目標設定</h2>
+          <form id="settingsForm" class="form-grid">
+            <label>毛利率 (%)<input type="number" name="margin" min="0" max="100" step="1" /></label>
+            <label>目前選擇月份業績目標<input type="number" name="goal" min="0" step="1000" placeholder="100000" /></label>
+            <div class="help span-2">ROI：〔廣告帶來業績 × 毛利率 − 廣告費〕÷ 廣告費 × 100%。ROAS：廣告帶來業績 ÷ 廣告費。業績目標會依月份個別保存。</div>
+            <div class="span-2 form-actions"><button class="primary" type="submit">儲存設定</button><button class="danger" type="button" id="clearData">清除全部資料</button></div>
+          </form>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="editDialog">
+    <form method="dialog" id="editForm" class="dialog-card">
+      <div class="panel-head"><h2 id="editTitle">編輯紀錄</h2><button class="icon-btn" value="cancel" type="button" id="closeEdit">×</button></div>
+      <div id="editFields" class="form-grid"></div>
+      <div class="dialog-actions"><button type="button" class="secondary" id="cancelEdit">取消</button><button type="submit" class="primary">儲存修改</button></div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name":"業績・投報率管理",
+  "short_name":"業績管理",
+  "start_url":"./index.html",
+  "display":"standalone",
+  "background_color":"#f6f6f4",
+  "theme_color":"#161616",
+  "lang":"zh-Hant"
+}
