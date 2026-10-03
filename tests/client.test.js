@@ -58,3 +58,13 @@ test('state refresh loads all administrator records without an owner selector',a
  vm.runInContext(source.slice(source.indexOf('async function refresh(){'),source.indexOf('async function enter(')),context);
  await context.refresh();assert.deepEqual(calls,['/state']);
 });
+
+test('settings month switch shows that month goal and clears an unset month',async()=>{
+ const source=await readFile(new URL('../public/app.js',import.meta.url),'utf8');
+ const label={},margin={},goal={};let month='2026-10';
+ const context={state:{settings:{margin:50,goals:{'2026-10':120000,'2026-11':180000}}},selectedMonth:()=>month,$:selector=>selector==='#settingsGoalLabel'?label:selector.includes('margin')?margin:goal};
+ vm.createContext(context);vm.runInContext(source.match(/function fillSettings\(\)\{[^\n]+/)[0],context);
+ context.fillSettings();assert.equal(goal.value,120000);assert.match(label.textContent,/10 月/);
+ month='2026-11';context.fillSettings();assert.equal(goal.value,180000);assert.match(label.textContent,/11 月/);
+ month='2026-12';context.fillSettings();assert.equal(goal.value,'');assert.equal(margin.value,50);
+});

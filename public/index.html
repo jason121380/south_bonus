@@ -229,8 +229,8 @@
         <article class="panel form-panel">
           <h2>計算與目標設定</h2>
           <form id="settingsForm" class="form-grid">
-            <label>毛利率 (%)<input type="number" name="margin" min="0" max="100" step="1" /></label>
-            <label>目前選擇月份業績目標<input type="number" name="goal" min="0" step="1000" placeholder="100000" /></label>
+            <label>毛利率 (%)（各月份共用）<input type="number" name="margin" min="0" max="100" step="1" /></label>
+            <label><span id="settingsGoalLabel">本月業績目標</span><input type="number" name="goal" min="0" step="1000" placeholder="本月尚未設定" /></label>
             <div class="help span-2">ROI：〔廣告帶來業績 × 毛利率 − 廣告費〕÷ 廣告費 × 100%。ROAS：廣告帶來業績 ÷ 廣告費。業績目標會依月份個別保存。</div>
             <div class="span-2 form-actions"><button class="primary" type="submit">儲存設定</button><button class="danger" type="button" id="clearData">清除我的紀錄</button></div>
           </form>
