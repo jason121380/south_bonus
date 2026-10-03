@@ -10,26 +10,21 @@ function showLogin(message=''){
   for(const form of ['subsidyForm','trafficSubsidyForm','userForm','userEditForm','passwordForm'])$('#'+form).reset();
   subsidyEditId=trafficEditId=null;subsidyOriginal=trafficOriginal=null;editCtx=null;
   for(const d of $$('dialog'))if(d.open)d.close();
-  $('#ownerFilter').innerHTML='';render();$('#usersTable').innerHTML='';
+  render();$('#usersTable').innerHTML='';
 }
 window.addEventListener('session-expired',()=>showLogin('登入已失效，請重新登入'));
 async function action(fn){
   if(busy){toast('正在處理，請稍候');return;}
-  busy=true;const buttons=$$('button[type=submit],.danger,#ownerFilter,#monthFilter');const prior=buttons.map(b=>b.disabled);buttons.forEach(b=>b.disabled=true);
+  busy=true;const buttons=$$('button[type=submit],.danger,#monthFilter');const prior=buttons.map(b=>b.disabled);buttons.forEach(b=>b.disabled=true);
   try{await fn();}catch(error){toast(error.message);if(error.status===409&&currentUser)try{await refresh();}catch{} }
   finally{busy=false;buttons.forEach((b,i)=>b.disabled=prior[i]);}
 }
 function fillUsers(){
-  const filter=$('#ownerFilter'),selected=filter.value||currentUser.id;
-  filter.innerHTML='<option value="all">全部用戶</option>'+users.map(u=>`<option value="${u.id}">${escapeHtml(u.displayName)}${u.active?'':'（停用）'}</option>`).join('');
-  filter.value=[...filter.options].some(o=>o.value===selected)?selected:currentUser.id;
   $('#usersTable').innerHTML=users.map(u=>`<tr><td>${escapeHtml(u.username)}</td><td>${escapeHtml(u.displayName)}</td><td>${u.role==='admin'?'管理員':'一般用戶'}</td><td>${u.active?'啟用':'停用'}</td><td><button type="button" class="edit-user-btn secondary" data-id="${u.id}">編輯／重設密碼</button></td></tr>`).join('');
 }
 async function reloadUsers(){if(currentUser.role==='admin'){users=await API.request('/users');fillUsers();}}
 async function refresh(){
-  const selected=currentUser.role==='admin'?$('#ownerFilter').value:currentUser.id;
-  const suffix=selected&&selected!=='all'?`?ownerId=${encodeURIComponent(selected)}`:'';
-  const data=await API.request('/state'+suffix);
+  const data=await API.request('/state');
   Object.assign(state,data);fillDesignerSelect();render();
   // Include ownership in admin tables without exposing any extra data to normal users.
   if(currentUser.role==='admin'){
@@ -61,7 +56,6 @@ $('#loginForm').addEventListener('submit',e=>{e.preventDefault();action(async()=
 $('#logoutButton').addEventListener('click',()=>action(async()=>{await API.request('/logout',{method:'POST',body:{}});showLogin();}));
 $$('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view)));
 $('#monthFilter').addEventListener('change',()=>{render();fillSettings();if(!subsidyEditId)$('#subsidyForm [name=month]').value=selectedMonth();if(!trafficEditId)$('#trafficSubsidyForm [name=month]').value=selectedMonth();});
-$('#ownerFilter').addEventListener('change',()=>action(async()=>{await refresh();resetSubsidyForm();resetTrafficSubsidyForm();}));
 $('#subsidyForm').addEventListener('click',e=>{const b=e.target.closest('.choice-btn');if(!b||b.disabled)return;setChoice(b.closest('[data-choice]').dataset.choice,b.dataset.value);});
 for(const name of ['monthlyAdFee','onlineRevenue'])$('#subsidyForm [name='+name+']').addEventListener('input',updateSubsidyCalc);
 $('#subsidyForm [name=replyMinutes]').addEventListener('input',updateReplyTimeDisplay);

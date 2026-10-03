@@ -47,3 +47,14 @@ test('only administrators can navigate to user management',async()=>{
  context.switchView('users');assert.equal(changes,0);
  context.currentUser.role='admin';context.switchView('users');assert.ok(changes>0);
 });
+
+test('state refresh loads all administrator records without an owner selector',async()=>{
+ const source=await readFile(new URL('../public/events.js',import.meta.url),'utf8');
+ const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8');
+ assert.doesNotMatch(html,/ownerFilter|record-owner/);
+ const calls=[];
+ const context={API:{request:async path=>{calls.push(path);return{}}},state:{},currentUser:{role:'user'},fillDesignerSelect(){},render(){}};
+ vm.createContext(context);
+ vm.runInContext(source.slice(source.indexOf('async function refresh(){'),source.indexOf('async function enter(')),context);
+ await context.refresh();assert.deepEqual(calls,['/state']);
+});
