@@ -18,7 +18,7 @@ npm ci
 cp .env.example .env
 ```
 
-編輯 `.env`，設定資料庫與首位管理員帳密，然後 `npm run dev`。帳號為 3–64 位英文／數字及 `_.@-`，密碼為 10–128 字元。資料庫首次啟動會建立資料表與首位管理員；之後改環境變數不會重設既有帳密。
+編輯 `.env`，設定資料庫與首位管理員帳密，然後 `npm run dev`。帳號為 3–64 位英文／數字及 `_.@-`，密碼為 6–128 字元。資料庫首次啟動會建立資料表與首位管理員；之後改環境變數不會重設既有帳密。
 
 本機沒有 PostgreSQL 時，移除 `.env` 的 `NODE_ENV=production`，設定 `LOCAL_DB=1`，使用開發依賴 PGlite。資料保存在 `.local-db/`，不提交 Git。正式環境禁止這個模式。
 
@@ -33,7 +33,7 @@ cp .env.example .env
 | `DATABASE_URL` | 透過 reference variable 連到 PostgreSQL 的 `DATABASE_URL`，通常為 `${{Postgres.DATABASE_URL}}`；服務名稱不同則依實際名稱調整 |
 | `NODE_ENV` | `production` |
 | `BOOTSTRAP_ADMIN_USERNAME` | 你設定的首位管理員帳號 |
-| `BOOTSTRAP_ADMIN_PASSWORD` | 你設定的獨立強密碼，至少 10 字元 |
+| `BOOTSTRAP_ADMIN_PASSWORD` | 你設定的獨立強密碼，至少 6 字元 |
 
 4. Railway 依 Dockerfile 建置，啟動時執行資料庫 migration，監聽 `0.0.0.0:$PORT`。
 5. 在 Networking 產生 HTTPS 網域，開啟網頁並登入；首次管理員建立成功後可移除 bootstrap 帳密變數。

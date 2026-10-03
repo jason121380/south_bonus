@@ -4,7 +4,7 @@ import {AppError,text} from './calculations.js';
 const scrypt=promisify(scryptCallback);
 export const hashToken=token=>createHash('sha256').update(token).digest('hex');
 export function validPassword(password) {
-  if(typeof password!=='string'||password.length<10||password.length>128)throw new AppError(400,'密碼需為 10 至 128 個字元');
+  if(typeof password!=='string'||password.length<6||password.length>128)throw new AppError(400,'密碼需為 6 至 128 個字元');
   return password;
 }
 export function username(value) {

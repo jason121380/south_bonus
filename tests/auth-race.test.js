@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createDatabase,migrate} from '../server/db.js';
-import {bootstrapAdmin,login,hashPassword} from '../server/auth.js';
+import {bootstrapAdmin,login,hashPassword,validPassword} from '../server/auth.js';
 test('a password reset committed during login cannot leave an old-password session',async()=>{
  const db=await createDatabase({embedded:true});await migrate(db);await bootstrapAdmin(db,{username:'admin',password:'old-password-12345'});
  const updatedHash=await hashPassword('new-password-12345');
@@ -21,3 +21,5 @@ test('a password reset committed during login cannot leave an old-password sessi
    assert.equal(Number((await db.query('SELECT count(*) AS n FROM sessions')).rows[0].n),0);
  }finally{await db.close();}
 });
+
+test("password minimum is six characters",()=>{assert.equal(validPassword("123456"),"123456");assert.throws(()=>validPassword("12345"));});

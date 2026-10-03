@@ -215,7 +215,7 @@
           <form id="userForm" class="form-grid">
             <label>帳號<input name="username" required minlength="3" maxlength="64" autocomplete="off" placeholder="英文或數字" /></label>
             <label>顯示名稱<input name="displayName" required maxlength="100" /></label>
-            <label>初始密碼<input name="password" type="password" required minlength="10" maxlength="128" autocomplete="new-password" /></label>
+            <label>初始密碼<input name="password" type="password" required minlength="6" maxlength="128" autocomplete="new-password" /></label>
             <label>角色<select name="role"><option value="user">一般用戶</option><option value="admin">管理員</option></select></label>
             <div class="span-2"><button class="primary" type="submit">建立用戶</button></div>
           </form>
@@ -239,7 +239,7 @@
           <h2>資料備份與匯入</h2><p class="help">匯入紀錄歸目前登入帳號所有，遇到重複資料會取消整次匯入，保留原有紀錄。舊版資料可在原本網址開啟 legacy-export.html 匯出。</p>
           <div class="form-actions wrap"><button id="exportBackup" class="secondary" type="button">匯出可見資料 JSON</button><label class="file-label">匯入 JSON<input type="file" id="importBackup" accept=".json,application/json" /></label></div>
         </article>
-        <article class="panel form-panel"><h2>修改我的密碼</h2><form id="passwordForm" class="form-grid"><label>目前密碼<input name="currentPassword" type="password" required autocomplete="current-password" /></label><label>新密碼<input name="password" type="password" required minlength="10" maxlength="128" autocomplete="new-password" /></label><div class="span-2"><button class="primary" type="submit">修改密碼並重新登入</button></div></form></article>
+        <article class="panel form-panel"><h2>修改我的密碼</h2><form id="passwordForm" class="form-grid"><label>目前密碼<input name="currentPassword" type="password" required autocomplete="current-password" /></label><label>新密碼<input name="password" type="password" required minlength="6" maxlength="128" autocomplete="new-password" /></label><div class="span-2"><button class="primary" type="submit">修改密碼並重新登入</button></div></form></article>
       </section>
     </main>
   </div>
@@ -253,7 +253,7 @@
   </dialog>
 
   <div id="toast" class="toast"></div>
-  <dialog id="userDialog"><form id="userEditForm" class="dialog-card"><div class="panel-head"><h2>編輯用戶</h2><button class="icon-btn" id="closeUserEdit" type="button">×</button></div><div class="form-grid"><label>顯示名稱<input name="displayName" required maxlength="100" /></label><label>角色<select name="role"><option value="user">一般用戶</option><option value="admin">管理員</option></select></label><label class="check-row"><input name="active" type="checkbox" />啟用帳號</label><label>重設密碼（留白保留）<input name="password" type="password" minlength="10" maxlength="128" autocomplete="new-password" /></label></div><p class="help">停用、變更角色或重設密碼會讓這位用戶重新登入。</p><div class="dialog-actions"><button class="primary" type="submit">儲存用戶</button></div></form></dialog>
+  <dialog id="userDialog"><form id="userEditForm" class="dialog-card"><div class="panel-head"><h2>編輯用戶</h2><button class="icon-btn" id="closeUserEdit" type="button">×</button></div><div class="form-grid"><label>顯示名稱<input name="displayName" required maxlength="100" /></label><label>角色<select name="role"><option value="user">一般用戶</option><option value="admin">管理員</option></select></label><label class="check-row"><input name="active" type="checkbox" />啟用帳號</label><label>重設密碼（留白保留）<input name="password" type="password" minlength="6" maxlength="128" autocomplete="new-password" /></label></div><p class="help">停用、變更角色或重設密碼會讓這位用戶重新登入。</p><div class="dialog-actions"><button class="primary" type="submit">儲存用戶</button></div></form></dialog>
   <script src="api.js"></script><script src="app.js"></script><script src="events.js"></script>
 </body>
 </html>
