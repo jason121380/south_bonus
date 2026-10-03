@@ -38,3 +38,12 @@ test('imported designers remain selectable when editing legacy records',async()=
  const context={state:{settings:{designers:['預設']},subsidyReports:[{designer:'舊設計師'}],trafficSubsidyReports:[]},$:id=>id==='#subsidyDesigner'?selects[0]:selects[1],escapeHtml:String};
  vm.createContext(context);vm.runInContext(source.match(/function fillDesignerSelect\(\)\{[^\n]+/)[0],context);context.fillDesignerSelect();assert.match(selects[0].innerHTML,/舊設計師/);assert.equal(selects[0].value,'舊設計師');
 });
+
+test('only administrators can navigate to user management',async()=>{
+ const source=await readFile(new URL('../public/app.js',import.meta.url),'utf8');
+ let changes=0;
+ const context={currentUser:{role:'user'},$$:()=>{changes++;return[]},$:()=>({classList:{add(){},toggle(){}},textContent:''})};
+ vm.createContext(context);vm.runInContext(source.match(/function switchView\(view\)\{[^\n]+/)[0],context);
+ context.switchView('users');assert.equal(changes,0);
+ context.currentUser.role='admin';context.switchView('users');assert.ok(changes>0);
+});
