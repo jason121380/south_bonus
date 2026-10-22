@@ -10,7 +10,7 @@
 - 保留繁體中文 UI、5% 廣告費加成、3.5 倍門檻，以及 15／20／25／30 萬流量補助門檻。
 - 一般用戶只能操作自己的資料；管理員操作所有資料。
 - 不提交帳密、不建立 Railway 線上專案；推送到 jason121380/south_bonus 的 main。
-- Node.js 22 LTS，PostgreSQL 16 以上；以環境變數取得 PORT、DATABASE_URL 與管理員初始帳密。
+- Node.js 24.22.1 以上，PostgreSQL 16 以上；以環境變數取得 PORT、DATABASE_URL 與管理員初始帳密。
 
 ## 重點驗證
 - 修改 record ID 或 owner_id 不能取得他人的資料。
