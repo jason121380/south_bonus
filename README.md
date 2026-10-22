@@ -11,7 +11,7 @@
 
 ## 本機啟動
 
-Node.js 22 以上：
+Node.js 24.22.1 以上：
 
 ```sh
 npm ci
