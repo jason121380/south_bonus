@@ -1,0 +1,22 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {createDatabase} from '../server/db.js';
+import {recalcSubsidyRoi} from '../server/recalc-roi.js';
+test('one-off ROI recalc backs up subsidy rows, recomputes and flags missing criteria',async()=>{
+ const db=await createDatabase({embedded:true});
+ await db.exec(await (await import('node:fs/promises')).readFile(new URL('../server/migrations/001.sql',import.meta.url),'utf8'));
+ const uid=randomUUID();await db.query("INSERT INTO users(id,username,display_name,password_hash,role) VALUES($1,'u','u','x','user')",[uid]);
+ const old=(fee,rev,hit,extra={})=>({month:'2026-10',designer:'D'+rev,monthlyAdFee:fee,actualAdFee:fee*1.05,onlineRevenue:rev,adItem:'染髮',roas:rev/(fee*1.05),roasHit:hit,socialPost:hit?'':'yes',replyWithin:hit?'':'yes',followSop:hit?'':'no',allThreeBonus:false,subsidyPercent:hit?50:20,departmentSubsidy:fee*1.05*(hit?50:20)/100,designerBurden:0,replyMinutes:0,replyTime:'',talentType:'一般',...extra});
+ const rows=[old(10000,50000,true),old(10000,40000,true),old(10000,20000,false)];
+ for(const d of rows)await db.query("INSERT INTO records(id,owner_id,kind,designer,month,data) VALUES($1,$2,'subsidy',$3,$4,$5)",[randomUUID(),uid,d.designer,d.month,JSON.stringify(d)]);
+ await db.query("INSERT INTO records(id,owner_id,kind,designer,month,data) VALUES($1,$2,'traffic-subsidy','T','2026-10','{}')",[randomUUID(),uid]);
+ const logs=[];const r=await db.transaction(tx=>recalcSubsidyRoi(tx,l=>logs.push(l)));
+ assert.equal(r.total,3);assert.equal(r.changes.length,1);
+ const c=r.changes[0];assert.equal(c.onlineRevenue,40000);assert.equal(c.newPercent,0);assert.equal(c.needsCriteria,true);
+ assert.equal((await db.query('SELECT count(*)::int AS n FROM records_backup_roi_20261102')).rows[0].n,3);
+ const data=(await db.query("SELECT data FROM records WHERE kind='subsidy' AND designer='D50000'")).rows[0].data;
+ assert.equal(Math.round(data.roi*100),376);assert.equal(data.subsidyPercent,50);assert.equal(data.roas,undefined);
+ assert.equal((await db.query("SELECT data FROM records WHERE kind='traffic-subsidy'")).rows[0].data.roi,undefined);
+ await db.close();
+});

@@ -24,6 +24,15 @@ function choice(value, allowed, label) {
   if (!allowed.includes(value)) throw new AppError(400, `請選擇${label}`);
   return value;
 }
+// 投報率 = (網路業績 − 實際廣告費) ÷ 實際廣告費，實際廣告費 = 月費 × 1.05。
+// 達標：投報率 ≥ 3.5（350%），等於 網路業績 ≥ 4.5 × 月費 × 1.05。
+// 用乘法比較：網路業績 × 200 ≥ 月費 × 945，避免浮點誤差。
+export const ROI_TARGET = 3.5;
+export function roiValues(monthlyAdFee, onlineRevenue) {
+  const actualAdFee = monthlyAdFee * 1.05;
+  if (!(monthlyAdFee > 0) || !(onlineRevenue > 0)) return {roi: null, roiHit: false};
+  return {roi: (onlineRevenue - actualAdFee) / actualAdFee, roiHit: onlineRevenue * 200 >= monthlyAdFee * 945};
+}
 export function normalizeRecord(kind, input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new AppError(400,'資料格式不正確');
   if (kind === 'revenue' || kind === 'ad') {
@@ -37,12 +46,11 @@ export function normalizeRecord(kind, input) {
   if (kind === 'subsidy') {
     row.onlineRevenue = number(input.onlineRevenue,'網路業績');
     row.adItem = choice(input.adItem,['染髮','縮毛矯正','燙髮','護髮','接髮','其他'],'廣告項目');
-    row.roas = row.actualAdFee ? row.onlineRevenue / row.actualAdFee : 0;
-    row.roasHit = row.roas >= 3.5;
-    for (const name of ['socialPost','replyWithin','followSop']) row[name] = row.roasHit ? '' : choice(input[name],['yes','no'],'三項配合度');
+    Object.assign(row, roiValues(row.monthlyAdFee, row.onlineRevenue));
+    for (const name of ['socialPost','replyWithin','followSop']) row[name] = row.roiHit ? '' : choice(input[name],['yes','no'],'三項配合度');
     const hits = [row.socialPost,row.replyWithin,row.followSop].filter(v=>v==='yes').length;
-    row.allThreeBonus = !row.roasHit && hits === 3;
-    row.subsidyPercent = row.roasHit ? 50 : hits * 10 + (row.allThreeBonus ? 10 : 0);
+    row.allThreeBonus = !row.roiHit && hits === 3;
+    row.subsidyPercent = row.roiHit ? 50 : hits * 10 + (row.allThreeBonus ? 10 : 0);
     row.replyMinutes = number(input.replyMinutes ?? 0,'回覆分鐘',100000);
     if (!Number.isInteger(row.replyMinutes)) throw new AppError(400,'回覆時間須為整數分鐘');
     const h = Math.floor(row.replyMinutes/60), m = row.replyMinutes % 60;

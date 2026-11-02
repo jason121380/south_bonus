@@ -73,7 +73,7 @@ document.addEventListener('click',async e=>{
   if(subsidy){const r=state.subsidyReports.find(x=>x.id===subsidy.dataset.id);if(!r)return;resetSubsidyForm();subsidyEditId=r.id;subsidyOriginal={...r};switchView('subsidy');const f=$('#subsidyForm');
     for(const name of ['month','designer','monthlyAdFee','onlineRevenue','replyMinutes'])f.elements[name].value=r[name]??'';
 
-    // Set every choice before recalculation to avoid using a previous record's ROAS.
+    // Set every choice before recalculation to avoid using a previous record's ROI.
     for(const name of ['adItem','socialPost','replyWithin','followSop','talentType']){f.elements[name].value=r[name]||'';f.querySelectorAll(`[data-choice="${name}"] .choice-btn`).forEach(b=>b.classList.toggle('selected',b.dataset.value===f.elements[name].value));}
     updateSubsidyCalc();updateReplyTimeDisplay();toast('已載入紀錄，修改後儲存');return;
   }
@@ -103,7 +103,7 @@ $('#importBackup').addEventListener('change',e=>{const file=e.target.files[0];e.
   const result=await API.request('/import',{method:'POST',body:payload});await refresh();toast(`已匯入 ${result.count} 筆紀錄`);
 });});
 $$('.report-tab').forEach(b=>b.addEventListener('click',()=>{$$('.report-tab').forEach(x=>x.classList.toggle('active',x===b));$$('.report-panel').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.report+'ReportPanel').classList.add('active');}));
-$('#exportSubsidy').addEventListener('click',()=>csvDownload(`廣告補助回報-${selectedMonth()}.csv`,['月份','姓名','廣告項目','每月廣告費用','實際廣告費用＋5%','網路業績','投報率','3.5倍達標','貼文及限時動態','1.5小時內回覆','回覆時間','遵循SOP','三項達標加10%','本次補助％數','事業部補助費用','設計師負擔金額','新秀／首次投放'],currentSubsidyReports().map(r=>[r.month,r.designer,r.adItem,r.monthlyAdFee,r.actualAdFee,r.onlineRevenue,Number(r.roas||0).toFixed(2),r.roasHit?'達標':'未達標',r.roasHit?'不適用':(r.socialPost==='yes'?'達標':'未達標'),r.roasHit?'不適用':(r.replyWithin==='yes'?'達標':'未達標'),r.replyTime||'',r.roasHit?'不適用':(r.followSop==='yes'?'達標':'未達標'),r.roasHit?'不適用':(r.allThreeBonus?'10%':'0%'),`${r.subsidyPercent}%`,r.departmentSubsidy,r.designerBurden,r.talentType||'一般'])));
+$('#exportSubsidy').addEventListener('click',()=>csvDownload(`廣告補助回報-${selectedMonth()}.csv`,['月份','姓名','廣告項目','每月廣告費用','實際廣告費用＋5%','網路業績','投報率(%)','投報率達350%','貼文及限時動態','1.5小時內回覆','回覆時間','遵循SOP','三項達標加10%','本次補助％數','事業部補助費用','設計師負擔金額','新秀／首次投放'],currentSubsidyReports().map(r=>[r.month,r.designer,r.adItem,r.monthlyAdFee,r.actualAdFee,r.onlineRevenue,r.roi===null||r.roi===undefined?'':Math.round(r.roi*100),r.roiHit?'達標':'未達標',r.roiHit?'不適用':(r.socialPost==='yes'?'達標':'未達標'),r.roiHit?'不適用':(r.replyWithin==='yes'?'達標':'未達標'),r.replyTime||'',r.roiHit?'不適用':(r.followSop==='yes'?'達標':'未達標'),r.roiHit?'不適用':(r.allThreeBonus?'10%':'0%'),`${r.subsidyPercent}%`,r.departmentSubsidy,r.designerBurden,r.talentType||'一般'])));
 $('#exportDaily').addEventListener('click',()=>csvDownload(`每日報表-${selectedMonth()}.csv`,['日期','業績','人數','平均客單','廣告客業績','新客','回客/其他'],dailyReport().map(r=>[r.date,r.revenue,r.count,r.revenue/r.count,r.adRevenue,r.newCount,r.count-r.newCount])));
 $('#exportMonthly').addEventListener('click',()=>csvDownload('每月報表.csv',['月份','總業績','人數','平均客單','廣告費','廣告業績','ROAS','目標達成率'],monthlyReport().map(r=>[r.month,r.revenue,r.count,r.avg,r.spend,r.adRevenue,r.roas??'',r.goalRate??''])));
 // Remove the old service worker: private API data must never be cached offline.

@@ -1,5 +1,6 @@
 import pg from 'pg';
 import {readFile} from 'node:fs/promises';
+import {recalcSubsidyRoi} from './recalc-roi.js';
 export async function createDatabase({url = process.env.DATABASE_URL,embedded = false,path} = {}) {
   if(embedded) {
     if(process.env.NODE_ENV === 'production') throw new Error('正式環境必須使用 PostgreSQL DATABASE_URL');
@@ -24,6 +25,10 @@ export async function migrate(db) {
     if(!(await tx.query('SELECT version FROM schema_migrations WHERE version=1')).rows.length){
       await tx.exec(await readFile(new URL('./migrations/001.sql',import.meta.url),'utf8'));
       await tx.query('INSERT INTO schema_migrations(version) VALUES(1)');
+    }
+    if(!(await tx.query('SELECT version FROM schema_migrations WHERE version=2')).rows.length){
+      await recalcSubsidyRoi(tx);
+      await tx.query('INSERT INTO schema_migrations(version) VALUES(2)');
     }
   });
 }
