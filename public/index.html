@@ -65,10 +65,10 @@
             <label>每月廣告費用<input type="number" name="monthlyAdFee" min="0" step="1" required placeholder="10000" /></label>
             <label>實際廣告費用＋5%<input type="text" name="actualAdFee" readonly /></label>
             <label>網路業績<input type="number" name="onlineRevenue" min="0" step="1" required placeholder="35000" /></label>
-            <label>投報率<input type="text" name="reportRoas" readonly /></label>
+            <label>投報率（業績−費用）÷ 費用<input type="text" name="reportRoi" readonly /></label>
 
             <div class="span-2 metric-block">
-              <span class="metric-label">3.5 倍達標｜達標即補助 50%</span>
+              <span class="metric-label">投報率達 350%（3.5）｜達標即補助 50%</span>
               <div id="roasTargetBadge" class="auto-badge neutral">輸入廣告費與網路業績後自動判斷</div>
             </div>
 
@@ -141,7 +141,7 @@
               <div><span>事業部補助費用</span><strong id="departmentSubsidy">$0</strong></div>
               <div><span>設計師負擔金額</span><strong id="designerBurden">$0</strong></div>
             </div>
-            <div class="help span-2">目前補助計算規則：投報率達 3.5 倍時固定補助 50%，不再疊加其他配合度補助；未達 3.5 倍時，貼文／限動達標 +10%、1.5 小時內回覆 +10%、遵循 SOP +10%，三項全部達標再 +10%，最高 40%。</div>
+            <div class="help span-2">目前補助計算規則：投報率 =（網路業績 − 實際廣告費）÷ 實際廣告費；投報率達 350%（3.5）時固定補助 50%，不再疊加其他配合度補助；未達 350% 時，貼文／限動達標 +10%、1.5 小時內回覆 +10%、遵循 SOP +10%，三項全部達標再 +10%，最高 40%。</div>
             <div class="span-2 form-actions"><button class="primary" type="submit">儲存補助回報</button><button class="secondary" type="button" id="resetSubsidyForm">清除表單</button></div>
           </form>
         </article>
@@ -182,7 +182,7 @@
       <section class="view" id="subsidy-recordsView">
         <article class="panel">
           <div class="panel-head"><h2>廣告補助回報紀錄</h2><div class="form-actions"><span id="subsidyRecordCount"></span><button class="secondary" id="exportSubsidy" type="button">匯出 CSV</button></div></div>
-          <div class="table-wrap"><table class="wide-table"><thead><tr><th>月份</th><th>姓名</th><th>廣告項目</th><th>每月廣告費</th><th>實際＋5%</th><th>網路業績</th><th>ROAS</th><th>3.5倍</th><th>貼文／限動</th><th>1.5h回覆</th><th>回覆時間</th><th>SOP</th><th>三項加碼</th><th>補助%</th><th>事業部補助</th><th>設計師負擔</th><th>身分類別</th><th>操作</th></tr></thead><tbody id="subsidyTable"></tbody></table></div>
+          <div class="table-wrap"><table class="wide-table"><thead><tr><th>月份</th><th>姓名</th><th>廣告項目</th><th>每月廣告費</th><th>實際＋5%</th><th>網路業績</th><th>投報率</th><th>達350%</th><th>貼文／限動</th><th>1.5h回覆</th><th>回覆時間</th><th>SOP</th><th>三項加碼</th><th>補助%</th><th>事業部補助</th><th>設計師負擔</th><th>身分類別</th><th>操作</th></tr></thead><tbody id="subsidyTable"></tbody></table></div>
         </article>
       </section>
 

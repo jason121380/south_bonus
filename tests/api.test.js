@@ -5,7 +5,7 @@ import {createDatabase,migrate} from '../server/db.js';
 import {createApp} from '../server/app.js';
 import {bootstrapAdmin} from '../server/auth.js';
 let db,app,admin,user,other,first,second;
-const fixture={month:'2026-10',designer:'測試 A',monthlyAdFee:10000,onlineRevenue:36750,adItem:'染髮'};
+const fixture={month:'2026-10',designer:'測試 A',monthlyAdFee:10000,onlineRevenue:47250,adItem:'染髮'};
 before(async()=>{
  db=await createDatabase({embedded:true});await migrate(db);await migrate(db);
  await bootstrapAdmin(db,{username:'admin',password:'test-admin-12345'});
